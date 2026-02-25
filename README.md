@@ -35,48 +35,51 @@ docker exec -it examify_backend php artisan migrate --seed
 
 ---
 
-## 🛠 Manual Setup (XAMPP / Local)
+## 🛠 Manual Setup (VS Code / Local Windows)
 
-If you don't want to use Docker, you can run the project using XAMPP for the database.
+If you are developing or running locally on Windows without Docker, follow these steps.
 
 ### 1. Database Setup (XAMPP)
 - Open **XAMPP Control Panel** and start **Apache** and **MySQL**.
-- Go to [http://localhost/phpmyadmin](http://localhost/phpmyadmin).
-- Create a new database named `examify`.
-- **Note**: You do NOT need to export/import SQL files. Laravel handles this via "Migrations".
+- Go to [http://localhost/phpmyadmin](http://localhost/phpmyadmin) and create a database named `examify`.
 
 ### 2. Backend (Laravel)
-Open your terminal in `examify-backend/`:
+Open a terminal in the `examify-backend/` folder:
 ```bash
-# 1. Install PHP dependencies
+# Install dependencies
 composer install
 
-# 2. Setup your environment file
+# Setup environment
 copy .env.example .env
 
-# 3. Generate security key
+# Configure .env (ensure these match your local DB)
+# DB_DATABASE=examify
+# DB_USERNAME=root
+# DB_PASSWORD=
+
+# Initialize Database
 php artisan key:generate
-
-# 4. Configure .env
-# Edit .env and set DB_DATABASE=examify, DB_USERNAME=root, DB_PASSWORD= (blank)
-
-# 5. Run Migrations (This creates the tables automatically)
 php artisan migrate --seed
 
-# 6. Start the server
+# Start Server
 php artisan serve
 ```
-*Backend will be at [http://localhost:8000](http://localhost:8000)*
+*Backend will be running at [http://127.0.0.1:8000](http://127.0.0.1:8000)*
 
-### 3. Frontend (Flutter)
-Open your terminal in `examify_flutter/`:
+### 3. Frontend (Flutter Windows)
+Open a **new second terminal** in the `examify_flutter/` folder:
 ```bash
-# 1. Get dependencies
+# Get dependencies
 flutter pub get
 
-# 2. Run the web app
-flutter run -d chrome
+# Run the app for Windows
+flutter run -d windows
 ```
+
+### 🎯 VS Code Tips
+- **Multi-Terminal**: Open two terminal tabs in VS Code to keep both the Backend and Frontend running simultaneously.
+- **Hot Reload**: Press `r` in the Flutter terminal to apply changes instantly without restarting.
+- **Hot Restart**: Press `R` in the Flutter terminal to reset the app state.
 
 ---
 
