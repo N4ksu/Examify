@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/widgets/app_card.dart';
+import '../../shared/widgets/app_button.dart';
+import '../../shared/widgets/app_text_field.dart';
 
 class TeacherDashboard extends ConsumerWidget {
   const TeacherDashboard({super.key});
@@ -37,7 +39,6 @@ class TeacherDashboard extends ConsumerWidget {
                     selected: true,
                   ),
                   ListTile(
-                    leading: const Icon(Icons.person),
                     title: const Text('Profile'),
                     onTap: () => context.push('/profile'),
                   ),
@@ -79,11 +80,40 @@ class TeacherDashboard extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Dialog to create classroom
-        },
+        onPressed: () => _showCreateClassroomDialog(context),
         icon: const Icon(Icons.add),
         label: const Text('Create Classroom'),
+      ),
+    );
+  }
+
+  void _showCreateClassroomDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Create Classroom'),
+        content: AppTextField(
+          controller: nameController,
+          label: 'Classroom Name',
+          hint: 'e.g. Physics 101',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          AppButton(
+            text: 'Create',
+            onPressed: () {
+              // Mock creation
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Classroom created successfully')),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

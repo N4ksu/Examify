@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/widgets/app_card.dart';
+import '../../shared/widgets/app_button.dart';
+import '../../shared/widgets/app_text_field.dart';
 
 class AnnouncementsTab extends ConsumerWidget {
   final String classroomId;
@@ -49,12 +51,54 @@ class AnnouncementsTab extends ConsumerWidget {
       ),
       floatingActionButton: isTeacher
           ? FloatingActionButton(
-              onPressed: () {
-                // Show post announcement dialog
-              },
+              onPressed: () => _showPostAnnouncementDialog(context),
               child: const Icon(Icons.add),
             )
           : null,
+    );
+  }
+
+  void _showPostAnnouncementDialog(BuildContext context) {
+    final titleController = TextEditingController();
+    final contentController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Post Announcement'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppTextField(
+              controller: titleController,
+              label: 'Title',
+              hint: 'Announcement Title',
+            ),
+            const SizedBox(height: 16),
+            AppTextField(
+              controller: contentController,
+              label: 'Content',
+              hint: 'Write your message here...',
+              maxLines: 4,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          AppButton(
+            text: 'Post',
+            onPressed: () {
+              // Mock posting
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Announcement posted')),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

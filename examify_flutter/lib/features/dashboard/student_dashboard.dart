@@ -39,7 +39,6 @@ class StudentDashboard extends ConsumerWidget {
                     selected: true,
                   ),
                   ListTile(
-                    leading: const Icon(Icons.person),
                     title: const Text('Profile'),
                     onTap: () => context.push('/profile'),
                   ),
@@ -108,6 +107,9 @@ class StudentDashboard extends ConsumerWidget {
             text: 'Join',
             onPressed: () {
               Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Classroom joined successfully')),
+              );
             },
           ),
         ],

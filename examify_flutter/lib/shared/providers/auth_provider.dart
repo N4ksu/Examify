@@ -17,11 +17,12 @@ class AuthState {
     bool? isLoading,
     User? user,
     String? error,
+    bool clearUser = false,
     bool clearError = false,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
-      user: user ?? this.user,
+      user: clearUser ? null : user ?? this.user,
       error: clearError ? null : error ?? this.error,
     );
   }
@@ -44,7 +45,6 @@ class AuthNotifier extends Notifier<AuthState> {
 
     if (token != null) {
       try {
-        final dio = ref.read(apiClientProvider);
         final userJsonStr = prefs.getString('user_data');
         if (userJsonStr != null) {
           // ...
@@ -165,6 +165,6 @@ class AuthNotifier extends Notifier<AuthState> {
     await prefs.remove('access_token');
     await prefs.remove('refresh_token');
     await prefs.remove('expires_at');
-    state = state.copyWith(user: null, isLoading: false, clearError: true);
+    state = state.copyWith(clearUser: true, isLoading: false, clearError: true);
   }
 }

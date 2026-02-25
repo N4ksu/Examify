@@ -1,13 +1,16 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:window_manager/window_manager.dart';
+import 'dart:io' show Platform;
+import 'dart:html' as html;
 
 enum ProctoringAction { warn, finalWarn, autoSubmitted }
 
-class ProctoringService with WidgetsBindingObserver, WindowListener {
+class ProctoringService extends WindowListener with WidgetsBindingObserver {
   final int attemptId;
   final Dio apiClient;
   int violationCount = 0;
@@ -27,10 +30,14 @@ class ProctoringService with WidgetsBindingObserver, WindowListener {
 
     WidgetsBinding.instance.addObserver(this);
 
-    if (Platform.isAndroid) {
+    if (kIsWeb) {
+      _lockWeb();
+    } else if (Platform.isAndroid) {
       await _lockAndroid();
     } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       await _lockDesktop();
+    } else if (Platform.isIOS) {
+      await _lockIOS();
     }
   }
 
@@ -40,12 +47,25 @@ class ProctoringService with WidgetsBindingObserver, WindowListener {
 
     WidgetsBinding.instance.removeObserver(this);
 
-    if (Platform.isAndroid) {
+    if (kIsWeb) {
+      _unlockWeb();
+    } else if (Platform.isAndroid) {
       await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       windowManager.removeListener(this);
       await windowManager.setFullScreen(false);
       await windowManager.setAlwaysOnTop(false);
+    } else if (Platform.isIOS) {
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
+  }
+
+  @override
+  void onWindowClose() async {
+    bool isPreventClose = await windowManager.isPreventClose();
+    if (isPreventClose && _isProctoring) {
+      _reportViolation('window_close_attempt');
     }
   }
 
@@ -70,16 +90,36 @@ class ProctoringService with WidgetsBindingObserver, WindowListener {
 
   Future<void> _lockAndroid() async {
     await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
+
+  Future<void> _lockIOS() async {
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   Future<void> _lockDesktop() async {
-    // Ensure window manager is initialized (it should be initialized in main.dart)
     windowManager.addListener(this);
     await windowManager.setFullScreen(true);
     await windowManager.setAlwaysOnTop(true);
+    await windowManager.setPreventClose(true);
+  }
+
+  void _lockWeb() {
+    html.document.documentElement?.requestFullscreen();
+    html.window.onFocus.listen((event) {});
+    html.window.onBlur.listen((event) {
+      _reportViolation('web_tab_switch');
+    });
+  }
+
+  void _unlockWeb() {
+    html.document.exitFullscreen();
   }
 
   Future<String> _getDeviceInfo() async {
+    if (kIsWeb) {
+      return html.window.navigator.userAgent;
+    }
     final deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
       final info = await deviceInfo.androidInfo;
@@ -101,12 +141,13 @@ class ProctoringService with WidgetsBindingObserver, WindowListener {
   }
 
   String _getPlatformName() {
+    if (kIsWeb) return 'Web';
     if (Platform.isAndroid) return 'Android';
     if (Platform.isIOS) return 'iOS';
     if (Platform.isWindows) return 'Windows';
     if (Platform.isMacOS) return 'macOS';
     if (Platform.isLinux) return 'Linux';
-    return 'Web/Unknown';
+    return 'Unknown';
   }
 
   Future<void> _reportViolation(String eventType) async {
