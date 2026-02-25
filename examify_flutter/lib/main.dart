@@ -15,6 +15,7 @@ import 'features/auth/register_screen.dart';
 import 'features/dashboard/teacher_dashboard.dart';
 import 'features/dashboard/student_dashboard.dart';
 import 'features/classroom/classroom_detail_screen.dart';
+import 'features/classroom/meet_prep_screen.dart';
 import 'features/assessment/create/create_assessment_screen.dart';
 import 'features/assessment/consent/consent_modal.dart';
 import 'features/assessment/take/take_assessment_screen.dart';
@@ -85,6 +86,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/classroom/:id',
         builder: (context, state) =>
             ClassroomDetailScreen(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/classroom/:id/meet-prep',
+        builder: (context, state) => const MeetPrepScreen(),
       ),
       GoRoute(
         path: '/classroom/:id/create-assessment',

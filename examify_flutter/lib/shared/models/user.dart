@@ -3,22 +3,19 @@ enum UserRole { teacher, student }
 class User {
   final int id;
   final String name;
-  final String email;
+  final String? email;
   final UserRole role;
 
-  User({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.role,
-  });
+  User({required this.id, required this.name, this.email, required this.role});
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],
-      name: json['name'],
+      name: json['name'] ?? 'Unknown User',
       email: json['email'],
-      role: json['role'] == 'teacher' ? UserRole.teacher : UserRole.student,
+      role: (json['role'] ?? 'student') == 'teacher'
+          ? UserRole.teacher
+          : UserRole.student,
     );
   }
 

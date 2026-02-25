@@ -3,14 +3,14 @@ import 'user.dart';
 class Classroom {
   final int id;
   final String name;
-  final String code;
+  final String joinCode;
   final String? description;
   final User? teacher;
 
   Classroom({
     required this.id,
     required this.name,
-    required this.code,
+    required this.joinCode,
     this.description,
     this.teacher,
   });
@@ -19,7 +19,7 @@ class Classroom {
     return Classroom(
       id: json['id'],
       name: json['name'],
-      code: json['code'],
+      joinCode: json['join_code'] ?? '',
       description: json['description'],
       teacher: json['teacher'] != null ? User.fromJson(json['teacher']) : null,
     );
@@ -29,7 +29,7 @@ class Classroom {
     return {
       'id': id,
       'name': name,
-      'code': code,
+      'join_code': joinCode,
       'description': description,
       'teacher': teacher?.toJson(),
     };

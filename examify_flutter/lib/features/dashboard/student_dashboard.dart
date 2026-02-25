@@ -6,11 +6,15 @@ import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_text_field.dart';
 
+import '../../shared/providers/classroom_provider.dart';
+
 class StudentDashboard extends ConsumerWidget {
   const StudentDashboard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final classroomsAsync = ref.watch(classroomsProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Student Dashboard'),
@@ -46,48 +50,53 @@ class StudentDashboard extends ConsumerWidget {
               ),
             ),
           Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(24),
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 300,
-                childAspectRatio: 3 / 2,
-                crossAxisSpacing: 24,
-                mainAxisSpacing: 24,
+            child: classroomsAsync.when(
+              data: (classrooms) => GridView.builder(
+                padding: const EdgeInsets.all(24),
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 300,
+                  childAspectRatio: 3 / 2,
+                  crossAxisSpacing: 24,
+                  mainAxisSpacing: 24,
+                ),
+                itemCount: classrooms.length,
+                itemBuilder: (context, index) {
+                  final classroom = classrooms[index];
+                  return AppCard(
+                    onTap: () => context.push('/classroom/${classroom.id}'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          classroom.name,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Teacher: ${classroom.teacher?.name ?? 'Unknown'}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-              itemCount: 2,
-              itemBuilder: (context, index) {
-                return AppCard(
-                  onTap: () => context.push('/classroom/${index + 1}'),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Joined Class ${index + 1}',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Teacher: Mr. Smith',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                );
-              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
             ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showJoinClassroomDialog(context),
+        onPressed: () => _showJoinClassroomDialog(context, ref),
         icon: const Icon(Icons.login),
         label: const Text('Join Classroom'),
       ),
     );
   }
 
-  void _showJoinClassroomDialog(BuildContext context) {
+  void _showJoinClassroomDialog(BuildContext context, WidgetRef ref) {
     final codeController = TextEditingController();
     showDialog(
       context: context,
@@ -105,11 +114,22 @@ class StudentDashboard extends ConsumerWidget {
           ),
           AppButton(
             text: 'Join',
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Classroom joined successfully')),
-              );
+            onPressed: () async {
+              if (codeController.text.isEmpty) return;
+
+              try {
+                await ClassroomActions(ref).joinClassroom(codeController.text);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Classroom joined successfully'),
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to join classroom: $e')),
+                );
+              }
             },
           ),
         ],

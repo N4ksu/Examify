@@ -15,12 +15,28 @@ class ClassroomController extends Controller
         $user = $request->user();
 
         if ($user->role === 'teacher') {
-            $classrooms = $user->classrooms()->withCount('students')->get();
+            $classrooms = $request->user()->classrooms()->withCount('students')->get();
         } else {
-            $classrooms = $user->enrolledClassrooms()->with('teacher:id,name')->get();
+            $classrooms = $request->user()->enrolledClassrooms()->with('teacher:id,name')->get();
         }
 
         return response()->json($classrooms, 200);
+    }
+
+    public function show(Request $request, $id)
+    {
+        $classroom = Classroom::with('teacher:id,name,email,role')->findOrFail($id);
+        $user = $request->user();
+
+        // Authorization: Teacher of the class or Enrolled student
+        $isTeacher = $classroom->teacher_id === $user->id;
+        $isStudent = $classroom->students()->where('student_id', $user->id)->exists();
+
+        if (!$isTeacher && !$isStudent) {
+            abort(403);
+        }
+
+        return response()->json($classroom, 200);
     }
 
     public function store(Request $request)
@@ -65,10 +81,62 @@ class ClassroomController extends Controller
         return response()->json(['message' => 'Joined successfully'], 200);
     }
 
+    public function joinByCode(Request $request)
+    {
+        $validated = $request->validate([
+            'join_code' => 'required|string|size:6',
+        ]);
+
+        $classroom = Classroom::where('join_code', strtoupper($validated['join_code']))->first();
+
+        if (!$classroom) {
+            return response()->json(['message' => 'Invalid join code'], 404);
+        }
+
+        if ($classroom->students()->where('student_id', $request->user()->id)->exists()) {
+            return response()->json(['message' => 'Already joined'], 409);
+        }
+
+        $classroom->students()->attach($request->user()->id);
+
+        return response()->json(['message' => 'Joined successfully', 'classroom' => $classroom], 200);
+    }
+
     public function students(Request $request, $id)
+    {
+        $classroom = Classroom::findOrFail($id);
+        $user = $request->user();
+
+        // Authorization: Teacher of the class or Enrolled student
+        $isTeacher = $classroom->teacher_id === $user->id;
+        $isStudent = $classroom->students()->where('student_id', $user->id)->exists();
+
+        if (!$isTeacher && !$isStudent) {
+            abort(403);
+        }
+
+        return response()->json($classroom->students()->select('users.id', 'users.name', 'users.email', 'users.role')->get(), 200);
+    }
+
+    public function update(Request $request, $id)
     {
         $classroom = Classroom::where('id', $id)->where('teacher_id', $request->user()->id)->firstOrFail();
 
-        return response()->json($classroom->students, 200);
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $classroom->update($validated);
+
+        return response()->json($classroom, 200);
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $classroom = Classroom::where('id', $id)->where('teacher_id', $request->user()->id)->firstOrFail();
+        $classroom->delete();
+
+        return response()->json(['message' => 'Classroom deleted'], 200);
     }
 }

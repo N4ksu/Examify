@@ -5,6 +5,7 @@ import '../../shared/providers/auth_provider.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_text_field.dart';
 import '../../shared/widgets/app_card.dart';
+import '../../shared/models/user.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -23,9 +24,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final success = await ref
           .read(authProvider.notifier)
           .login(_emailController.text, _passwordController.text);
+      if (!mounted) return;
       if (success) {
         final user = ref.read(authProvider).user;
-        if (user?.role.name == 'teacher') {
+        if (user?.role == UserRole.teacher) {
           context.go('/teacher');
         } else {
           context.go('/student');

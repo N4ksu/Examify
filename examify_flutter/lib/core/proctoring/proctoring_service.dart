@@ -5,8 +5,11 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:window_manager/window_manager.dart';
+import 'proctoring_platform.dart';
 import 'dart:io' show Platform;
-import 'dart:html' as html;
+import 'proctoring_platform_native.dart'
+    if (dart.library.html) 'proctoring_platform_web.dart'
+    as platform_impl;
 
 enum ProctoringAction { warn, finalWarn, autoSubmitted }
 
@@ -22,7 +25,9 @@ class ProctoringService extends WindowListener with WidgetsBindingObserver {
     required this.attemptId,
     required this.apiClient,
     this.onViolation,
-  });
+  }) : _platform = platform_impl.getPlatform();
+
+  final ProctoringPlatform _platform;
 
   Future<void> start() async {
     if (_isProctoring) return;
@@ -105,20 +110,16 @@ class ProctoringService extends WindowListener with WidgetsBindingObserver {
   }
 
   void _lockWeb() {
-    html.document.documentElement?.requestFullscreen();
-    html.window.onFocus.listen((event) {});
-    html.window.onBlur.listen((event) {
-      _reportViolation('web_tab_switch');
-    });
+    _platform.lockWeb((type) => _reportViolation(type));
   }
 
   void _unlockWeb() {
-    html.document.exitFullscreen();
+    _platform.unlockWeb();
   }
 
   Future<String> _getDeviceInfo() async {
     if (kIsWeb) {
-      return html.window.navigator.userAgent;
+      return _platform.getUserAgent();
     }
     final deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {

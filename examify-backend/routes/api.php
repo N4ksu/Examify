@@ -27,12 +27,17 @@ Route::middleware('auth:sanctum')->group(function () {
     // Classrooms API
     Route::get('/classrooms', [ClassroomController::class, 'index']);
     Route::post('/classrooms', [ClassroomController::class, 'store'])->middleware('teacher');
-    Route::post('/classrooms/{id}/join', [ClassroomController::class, 'join'])->middleware('student');
-    Route::get('/classrooms/{id}/students', [ClassroomController::class, 'students'])->middleware('teacher');
+    Route::get('/classrooms/{id}', [ClassroomController::class, 'show']);
+    Route::patch('/classrooms/{id}', [ClassroomController::class, 'update'])->middleware('teacher');
+    Route::delete('/classrooms/{id}', [ClassroomController::class, 'destroy'])->middleware('teacher');
+    Route::post('/join', [ClassroomController::class, 'joinByCode'])->middleware('student');
+    Route::get('/classrooms/{id}/students', [ClassroomController::class, 'students']);
 
     // Announcements API
     Route::get('/classrooms/{id}/announcements', [AnnouncementController::class, 'index']);
     Route::post('/classrooms/{id}/announcements', [AnnouncementController::class, 'store'])->middleware('teacher');
+    Route::patch('/announcements/{id}', [AnnouncementController::class, 'update'])->middleware('teacher');
+    Route::delete('/announcements/{id}', [AnnouncementController::class, 'destroy'])->middleware('teacher');
 
     // Assessments API
     Route::get('/classrooms/{id}/assessments', [AssessmentController::class, 'index']);

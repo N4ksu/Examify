@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'announcements_tab.dart';
-import 'assessments_tab.dart';
+import 'stream_tab.dart';
+import 'assessments_tab.dart'; // We'll keep this as ClassworkTab
+import 'people_tab.dart';
 
 class ClassroomDetailScreen extends ConsumerWidget {
   final String id;
@@ -10,21 +11,30 @@ class ClassroomDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Classroom $id'),
+          title: const Text('Classroom'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.videocam_outlined),
+              onPressed: () {},
+            ),
+            IconButton(icon: const Icon(Icons.info_outline), onPressed: () {}),
+          ],
           bottom: const TabBar(
             tabs: [
-              Tab(text: 'Announcements'),
-              Tab(text: 'Assessments'),
+              Tab(text: 'Stream'),
+              Tab(text: 'Classwork'),
+              Tab(text: 'People'),
             ],
           ),
         ),
         body: TabBarView(
           children: [
-            AnnouncementsTab(classroomId: id),
-            AssessmentsTab(classroomId: id),
+            StreamTab(classroomId: id),
+            AssessmentsTab(classroomId: id), // This is our 'Classwork' tab
+            PeopleTab(classroomId: id),
           ],
         ),
       ),
