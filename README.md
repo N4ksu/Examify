@@ -35,22 +35,50 @@ docker exec -it examify_backend php artisan migrate --seed
 
 ---
 
-## 🛠 Manual Setup (Development)
+## 🛠 Manual Setup (XAMPP / Local)
 
-If you prefer to run the components separately without Docker:
+If you don't want to use Docker, you can run the project using XAMPP for the database.
 
-### Backend (Laravel)
-1. `cd examify-backend`
-2. `composer install`
-3. `copy .env.example .env` (update database credentials)
-4. `php artisan key:generate`
-5. `php artisan migrate --seed`
-6. `php artisan serve`
+### 1. Database Setup (XAMPP)
+- Open **XAMPP Control Panel** and start **Apache** and **MySQL**.
+- Go to [http://localhost/phpmyadmin](http://localhost/phpmyadmin).
+- Create a new database named `examify`.
+- **Note**: You do NOT need to export/import SQL files. Laravel handles this via "Migrations".
 
-### Frontend (Flutter)
-1. `cd examify_flutter`
-2. `flutter pub get`
-3. `flutter run -d chrome` (for web)
+### 2. Backend (Laravel)
+Open your terminal in `examify-backend/`:
+```bash
+# 1. Install PHP dependencies
+composer install
+
+# 2. Setup your environment file
+copy .env.example .env
+
+# 3. Generate security key
+php artisan key:generate
+
+# 4. Configure .env
+# Edit .env and set DB_DATABASE=examify, DB_USERNAME=root, DB_PASSWORD= (blank)
+
+# 5. Run Migrations (This creates the tables automatically)
+php artisan migrate --seed
+
+# 6. Start the server
+php artisan serve
+```
+*Backend will be at [http://localhost:8000](http://localhost:8000)*
+
+### 3. Frontend (Flutter)
+Open your terminal in `examify_flutter/`:
+```bash
+# 1. Get dependencies
+flutter pub get
+
+# 2. Run the web app
+flutter run -d chrome
+```
+
+---
 
 ## 🔒 Proctoring Features
 - **Full-Screen Enforcement**: Works on Web, Desktop, and Mobile.
