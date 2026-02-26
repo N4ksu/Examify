@@ -57,6 +57,15 @@ copy .env.example .env
 # DB_USERNAME=root
 # DB_PASSWORD=
 
+mysql
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=examify_new
+DB_USERNAME=root
+DB_PASSWORD=
+
+
 # Initialize Database
 php artisan key:generate
 php artisan migrate --seed
